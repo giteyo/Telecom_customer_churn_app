@@ -2,54 +2,54 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-# 1. Load the Bundle
+# Load the model
 model = joblib.load('churn_pipeline.joblib')
 
-st.set_page_config(page_title="Telco Churn Predictor", layout="wide")
-st.title("📊 Customer Churn Analysis Tool")
+# ... (Your UI code for inputs: tenure, monthly_charges, etc.) ...
 
-# 2. Input UI (Grouped for better UX)
-st.sidebar.header("Customer Demographics & Services")
-
-# Numerical Inputs
-tenure = st.sidebar.slider("Tenure (Months)", 0, 72, 12)
-monthly = st.sidebar.number_input("Monthly Charges ($)", value=50.0)
-total = st.sidebar.number_input("Total Charges ($)", value=500.0)
-
-# Categorical Inputs (Drop-downs)
-contract = st.sidebar.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-internet = st.sidebar.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
-payment = st.sidebar.selectbox("Payment Method", ["Electronic check", "Mailed check", "Bank transfer", "Credit card"])
-
-# Simple Yes/No selections
-col1, col2 = st.columns(2)
-with col1:
-    senior = st.selectbox("Senior Citizen", ["0", "1"])
-    partner = st.selectbox("Partner", ["Yes", "No"])
-    dependents = st.selectbox("Dependents", ["Yes", "No"])
-    online_sec = st.selectbox("Online Security", ["Yes", "No", "No internet service"])
-
-with col2:
-    paperless = st.selectbox("Paperless Billing", ["Yes", "No"])
-    tech_support = st.selectbox("Tech Support", ["Yes", "No", "No internet service"])
-    streaming_tv = st.selectbox("Streaming TV", ["Yes", "No", "No internet service"])
-
-# 3. Prediction Execution
-if st.button("Calculate Churn Risk"):
-    # Create a DataFrame matching your training data columns
+if st.button("Predict Churn"):
+    # 1. Create the dictionary with EXACT matches to your list
+    # Note: Ensure the variables (tenure, partner, etc.) are defined above in your UI
     input_dict = {
-        'Tenure': tenure, 'Monthly Charges': monthly, 'Total Charges': total,
-        'Senior Citizen': senior, 'Partner': partner, 'Dependents': dependents,
-        'Contract': contract, 'Internet Service': internet, 'Payment Method': payment,
-        'Paperless Billing': paperless, 'Tech Support': tech_support, 'Streaming TV': streaming_tv,
-        # Add remaining features here to match your exact X_train columns...
+        'Senior Citizen': senior_citizen, 
+        'Partner': partner, 
+        'Dependents': dependents, 
+        'Tenure': tenure, 
+        'Phone Service': phone_service, 
+        'Multiple Lines': multiple_lines, 
+        'Internet Service': internet_service, 
+        'Online Security': online_security, 
+        'Online Backup': online_backup, 
+        'Device Protection': device_protection, 
+        'Tech Support': tech_support, 
+        'Streaming TV': streaming_tv, 
+        'Streaming Movies': streaming_movies, 
+        'Contract': contract, 
+        'Paperless Billing': paperless_billing, 
+        'Payment Method': payment_method, 
+        'Monthly Charges': monthly_charges, 
+        'Total Charges': total_charges
     }
     
+    # 2. Convert to DataFrame
     input_df = pd.DataFrame([input_dict])
     
-    prediction = model.predict(input_df)
+    # 3. Explicitly reorder columns to match X_train exactly
+    # This prevents the "Feature Name" ValueError
+    column_order = [
+        'Senior Citizen', 'Partner', 'Dependents', 'Tenure', 'Phone Service', 
+        'Multiple Lines', 'Internet Service', 'Online Security', 'Online Backup', 
+        'Device Protection', 'Tech Support', 'Streaming TV', 'Streaming Movies', 
+        'Contract', 'Paperless Billing', 'Payment Method', 'Monthly Charges', 'Total Charges'
+    ]
+    input_df = input_df[column_order]
     
-    if prediction[0] == 1:
-        st.error("### Result: High Risk of Churn")
-    else:
-        st.success("### Result: Likely to Stay")
+    # 4. Predict
+    try:
+        prediction = model.predict(input_df)
+        if prediction[0] == 1:
+            st.error("High Risk: Customer is likely to Churn")
+        else:
+            st.success("Low Risk: Customer is likely to Stay")
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
