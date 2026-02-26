@@ -1,3 +1,8 @@
+import streamlit as st
+import joblib
+import pandas as pd
+import numpy as np
+
 if st.button("Predict"):
     # Convert "Yes"/"No" and categories into numbers manually
     input_dict = {
@@ -37,3 +42,4 @@ if st.button("Predict"):
 
     prediction = model.predict(input_df)
     # ... result logic
+
